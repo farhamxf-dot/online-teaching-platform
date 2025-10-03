@@ -1,0 +1,26 @@
+# Ignore data files
+data/users.json
+data/rooms.json
+data/breakout_rooms.json
+data/chats.json
+data/files.json
+data/polls.json
+data/recordings.json
+data/uploads/
+data/whiteboards/
+data/screen_share/
+
+# Ignore Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# OS files
+.DS_Store
+Thumbs.db
