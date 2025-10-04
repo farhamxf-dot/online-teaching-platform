@@ -137,13 +137,29 @@ def show_student_screen_view():
     # Check if there's shared content
     img_path = Path(f"data/screen_share/{st.session_state.room_id}_image.png")
     vid_path = Path(f"data/screen_share/{st.session_state.room_id}_video.mp4")
+    cam_path = Path(f"data/screen_share/{st.session_state.room_id}_camera.png")
     
-    if img_path.exists():
+    content_shown = False
+
+    # Camera snapshot (prioritize teacher webcam snapshot)
+    if cam_path.exists():
+        st.image(str(cam_path), caption="نمای وب‌کم مدرس", use_container_width=True)
+        content_shown = True
+
+    # Then fall back to shared image or video
+    if not content_shown and img_path.exists():
         st.image(str(img_path), caption="تصویر ارائه شده توسط مدرس", use_container_width=True)
-    elif vid_path.exists():
+        content_shown = True
+    elif not content_shown and vid_path.exists():
         st.video(str(vid_path))
-    else:
+        content_shown = True
+
+    if not content_shown:
         st.info("در حال حاضر محتوایی به اشتراک گذاشته نشده است")
+
+    # Allow students to refresh view to pick up the latest published files
+    if st.button("بارگذاری مجدد محتوا"):
+        st.experimental_rerun()
     
     # View controls
     st.divider()
