@@ -7,6 +7,8 @@ import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 import json
 from pathlib import Path
+import numpy as np
+from PIL import Image
 
 def show():
     """Show whiteboard interface"""
@@ -55,15 +57,47 @@ def show():
         drawing_mode=drawing_mode,
         key="canvas",
     )
+
+    # Shared whiteboard image path (auto-saved snapshot of canvas)
+    wb_image_path = Path(f"data/whiteboards/{st.session_state.room_id}_canvas.png")
+
+    # If user is not a teacher, show the latest published whiteboard snapshot (read-only)
+    # This allows students to view what the teacher is drawing (simple polling / refresh).
+    if st.session_state.get('user_role') != "مدرس":
+        if wb_image_path.exists():
+            st.image(str(wb_image_path), caption="تخته سفید (ارائه شده توسط مدرس)", use_container_width=True)
+            if st.button("بارگذاری مجدد تخته"):
+                st.experimental_rerun()
+        else:
+            st.info("تخته‌ای توسط مدرس منتشر نشده است")
+        # Students shouldn't get the drawing controls below; return early
+        return
     
-    # Save whiteboard data
+    # Save whiteboard data (explicit save to JSON)
     if save_board:
         if canvas_result.json_data is not None:
             wb_path = Path(f"data/whiteboards/{st.session_state.room_id}.json")
             wb_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(wb_path, 'w') as f:
+            with open(wb_path, 'w', encoding='utf-8') as f:
                 json.dump(canvas_result.json_data, f)
             st.success("تخته سفید ذخیره شد!")
+
+    # Auto-save an image snapshot of the canvas so students can quickly view the latest drawing.
+    # st_canvas returns image_data as an ndarray (RGBA). Convert and save as PNG.
+    try:
+        if canvas_result is not None and getattr(canvas_result, 'image_data', None) is not None:
+            arr = canvas_result.image_data
+            # Convert float images to uint8 if needed
+            if arr.dtype != np.uint8:
+                arr = (arr * 255).astype('uint8')
+            img = Image.fromarray(arr)
+            wb_image_path.parent.mkdir(parents=True, exist_ok=True)
+            img.save(wb_image_path)
+            # Indicate published state
+            st.session_state['whiteboard_published'] = True
+    except Exception:
+        # Non-fatal; don't block the UI if saving snapshot fails
+        pass
     
     # Text tools
     st.divider()
