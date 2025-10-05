@@ -71,7 +71,7 @@ def show_teacher_recording_view():
         
         with col1:
             if not st.session_state.recording_active:
-                if st.button("🔴 شروع ضبط", type="primary", use_container_width=True):
+                if st.button("🔴 شروع ضبط", type="primary"):
                     st.session_state.recording_active = True
                     st.session_state.recording_start_time = datetime.now()
                     st.success("ضبط شروع شد!")
@@ -79,12 +79,12 @@ def show_teacher_recording_view():
         
         with col2:
             if st.session_state.recording_active:
-                if st.button("⏸️ مکث", use_container_width=True):
+                if st.button("⏸️ مکث"):
                     st.info("ضبط متوقف شد")
         
         with col3:
             if st.session_state.recording_active:
-                if st.button("⏹️ پایان و ذخیره", use_container_width=True):
+                if st.button("⏹️ پایان و ذخیره"):
                     end_time = datetime.now()
                     duration = end_time - st.session_state.recording_start_time
                     
