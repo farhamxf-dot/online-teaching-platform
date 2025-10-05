@@ -36,7 +36,7 @@ def show_teacher_screen_share():
                                          key="image_upload")
         
         if uploaded_image:
-            st.image(uploaded_image, caption="تصویر ارائه شده", use_container_width=True)
+            st.image(uploaded_image, caption="تصویر ارائه شده", width=700)
             
             col1, col2 = st.columns(2)
             with col1:
@@ -93,7 +93,7 @@ def show_teacher_screen_share():
     # Capture image from teacher's webcam
     camera_image = st.camera_input("نمای وب‌کم (اگر در مرورگر پشتیبانی شود)")
     if camera_image is not None:
-        st.image(camera_image, caption="پیش‌نمایش وب‌کم", use_container_width=True)
+        st.image(camera_image, caption="پیش‌نمایش وب‌کم", width=400)
         col1, col2 = st.columns(2)
         with col1:
             if st.button("انتشار تصویر وب‌کم"):
@@ -143,12 +143,26 @@ def show_student_screen_view():
 
     # Camera snapshot (prioritize teacher webcam snapshot)
     if cam_path.exists():
-        st.image(str(cam_path), caption="نمای وب‌کم مدرس", use_container_width=True)
-        content_shown = True
+        try:
+            with open(cam_path, 'rb') as f:
+                cam_bytes = f.read()
+            st.image(cam_bytes, caption="نمای وب‌کم مدرس", width=700)
+            content_shown = True
+        except Exception:
+            # fallback to path if reading fails
+            st.image(str(cam_path), caption="نمای وب‌کم مدرس", width=700)
+            content_shown = True
 
     # Then fall back to shared image or video
     if not content_shown and img_path.exists():
-        st.image(str(img_path), caption="تصویر ارائه شده توسط مدرس", use_container_width=True)
+        try:
+            with open(img_path, 'rb') as f:
+                img_bytes = f.read()
+            st.image(img_bytes, caption="تصویر ارائه شده توسط مدرس", width=700)
+            content_shown = True
+        except Exception:
+            st.image(str(img_path), caption="تصویر ارائه شده توسط مدرس", width=700)
+            content_shown = True
         content_shown = True
     elif not content_shown and vid_path.exists():
         st.video(str(vid_path))
@@ -159,7 +173,17 @@ def show_student_screen_view():
 
     # Allow students to refresh view to pick up the latest published files
     if st.button("بارگذاری مجدد محتوا"):
-        st.experimental_rerun()
+        try:
+            from modules import ui
+            if hasattr(ui, 'safe_rerun'):
+                ui.safe_rerun()
+                return
+        except Exception:
+            pass
+
+        rerun = getattr(st, 'experimental_rerun', None)
+        if callable(rerun):
+            rerun()
     
     # View controls
     st.divider()
