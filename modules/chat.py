@@ -112,7 +112,7 @@ def show_public_chat(room_id, username):
         with col1:
             new_message = st.text_input("پیام:", label_visibility="collapsed", placeholder="پیام خود را بنویسید...")
         with col2:
-            send = st.form_submit_button("ارسال", use_container_width=True)
+            send = st.form_submit_button("ارسال")
 
         if send and new_message:
             save_message(room_id, username, new_message, "public")
@@ -126,7 +126,7 @@ def show_public_chat(room_id, username):
     cols = [col1, col2, col3, col4]
     for idx, (emoji, text) in enumerate(quick_responses.items()):
         with cols[idx]:
-            if st.button(f"{emoji} {text}", use_container_width=True):
+            if st.button(f"{emoji} {text}"):
                 save_message(room_id, username, f"{emoji} {text}", "public")
                 ui.safe_rerun()
 
@@ -172,7 +172,7 @@ def show_private_chat(room_id, username):
         with col1:
             private_message = st.text_input("پیام خصوصی:", label_visibility="collapsed", placeholder=f"پیام به {selected_user}...")
         with col2:
-            send_private = st.form_submit_button("ارسال", use_container_width=True)
+            send_private = st.form_submit_button("ارسال")
 
         if send_private and private_message:
             save_message(room_id, username, private_message, "private", to=selected_user)
