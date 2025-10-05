@@ -7,6 +7,11 @@ import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 import json
 from pathlib import Path
+# Use the UI helper for safe rerun when available
+try:
+    from modules import ui
+except Exception:
+    ui = None
 import numpy as np
 from PIL import Image
 
@@ -65,9 +70,21 @@ def show():
     # This allows students to view what the teacher is drawing (simple polling / refresh).
     if st.session_state.get('user_role') != "مدرس":
         if wb_image_path.exists():
-            st.image(str(wb_image_path), caption="تخته سفید (ارائه شده توسط مدرس)", use_container_width=True)
+            try:
+                with open(wb_image_path, 'rb') as f:
+                    img_bytes = f.read()
+                st.image(img_bytes, caption="تخته سفید (ارائه شده توسط مدرس)", width=700)
+            except Exception:
+                st.image(str(wb_image_path), caption="تخته سفید (ارائه شده توسط مدرس)", width=700)
+
             if st.button("بارگذاری مجدد تخته"):
-                st.experimental_rerun()
+                # prefer ui.safe_rerun if available (avoids AttributeError in some Streamlit builds)
+                if ui is not None and hasattr(ui, 'safe_rerun'):
+                    ui.safe_rerun()
+                else:
+                    rerun = getattr(st, 'experimental_rerun', None)
+                    if callable(rerun):
+                        rerun()
         else:
             st.info("تخته‌ای توسط مدرس منتشر نشده است")
         # Students shouldn't get the drawing controls below; return early
